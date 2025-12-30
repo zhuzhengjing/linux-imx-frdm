@@ -582,10 +582,12 @@
 };
 
 &lpspi3 {
-	fsl,spi-num-chipselects = <1>;
+	fsl,spi-num-chipselects = <2>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpspi3>;
-	cs-gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
+    /* cs0 = EXP_GPIO_IO08, cs1 = EXP_GPIO_IO07 */
+    cs-gpios = <&gpio2 8 GPIO_ACTIVE_LOW>,
+               <&gpio2 7 GPIO_ACTIVE_LOW>;
 	pinctrl-assert-gpios = <&pcal6408 0 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 
@@ -594,6 +596,14 @@
 		compatible = "lwn,bk4";
 		spi-max-frequency = <1000000>;
 	};
+
+    admt4000: spi@1 {
+        reg = <1>;
+        compatible = "adi,admt4000";
+        spi-max-frequency = <1000000>;
+
+        vdd-supply = <&reg_vdd_5p0v>;
+    };
 };
 
 &lpuart1 { /* console */
