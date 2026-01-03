@@ -110,6 +110,8 @@
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
 		enable-active-high;
+
+		regulator-always-on;
 	};
 
 	reg_vdd_5p0v: regulator-vdd-5p0v {
@@ -582,12 +584,10 @@
 };
 
 &lpspi3 {
-	fsl,spi-num-chipselects = <2>;
+	fsl,spi-num-chipselects = <1>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_lpspi3>;
-    /* cs0 = EXP_GPIO_IO08, cs1 = EXP_GPIO_IO07 */
-    cs-gpios = <&gpio2 8 GPIO_ACTIVE_LOW>,
-               <&gpio2 7 GPIO_ACTIVE_LOW>;
+	cs-gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
 	pinctrl-assert-gpios = <&pcal6408 0 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 
@@ -596,14 +596,23 @@
 		compatible = "lwn,bk4";
 		spi-max-frequency = <1000000>;
 	};
+};
 
-    admt4000: spi@1 {
-        reg = <1>;
-        compatible = "adi,admt4000";
-        spi-max-frequency = <1000000>;
+&lpspi6 {
+	fsl,spi-num-chipselects = <1>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lpspi6>;
+	assigned-clocks = <&clk IMX93_CLK_LPSPI6>;
+	assigned-clock-parents = <&clk IMX93_CLK_SYS_PLL_PFD0_DIV2>;
+	assigned-clock-rates = <100000000>;
+	cs-gpios = <&gpio2 0 GPIO_ACTIVE_LOW>;
+	status = "okay";
 
-        vdd-supply = <&reg_vdd_5p0v>;
-    };
+	admt4000: spi@0 {
+		reg = <0>;
+		compatible = "lwn,bk4";
+		spi-max-frequency = <1000000>;
+	};
 };
 
 &lpuart1 { /* console */
@@ -869,6 +878,15 @@
 			MX93_PAD_GPIO_IO09__LPSPI3_SIN      0x3fe
 			MX93_PAD_GPIO_IO10__LPSPI3_SOUT     0x3fe
 			MX93_PAD_GPIO_IO11__LPSPI3_SCK      0x3fe
+		>;
+	};
+
+	pinctrl_lpspi6: lpspi6grp {
+		fsl,pins = <
+			MX93_PAD_GPIO_IO00__GPIO2_IO00      0x3fe
+			MX93_PAD_GPIO_IO01__LPSPI6_SIN      0x3fe
+			MX93_PAD_GPIO_IO02__LPSPI6_SOUT     0x3fe
+			MX93_PAD_GPIO_IO03__LPSPI6_SCK      0x3fe
 		>;
 	};
 
