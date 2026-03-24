@@ -1555,6 +1555,8 @@ static int fsl_sai_probe(struct platform_device *pdev)
 
 	sai->pinctrl = devm_pinctrl_get(&pdev->dev);
 
+	sai->slot_width = 32;
+
 	platform_set_drvdata(pdev, sai);
 	pm_runtime_enable(dev);
 	if (!pm_runtime_enabled(dev)) {

@@ -11,6 +11,7 @@
 #include <linux/module.h>
 #include <linux/of_platform.h>
 #include <linux/of_gpio.h>
+#include <linux/gpio/consumer.h>
 #if IS_ENABLED(CONFIG_SND_AC97_CODEC)
 #include <sound/ac97_codec.h>
 #endif
@@ -130,6 +131,7 @@ struct fsl_asoc_card_priv {
 	bool is_playback_only;
 	bool is_capture_only;
 	char name[32];
+	struct gpio_desc *amp_enable;
 };
 
 /*
@@ -180,12 +182,38 @@ static const struct snd_soc_dapm_route audio_map_esai[] = {
 	{"CLIENT1-Capture",  NULL, "CPU-Capture"},
 };
 
+/* turn speaker amplifier on/off depending on use */
+static int corgi_amp_event(struct snd_soc_dapm_widget *w, struct snd_kcontrol *control, int event)
+{
+	struct snd_soc_card *card = w->dapm->card;
+	struct fsl_asoc_card_priv *priv = snd_soc_card_get_drvdata(card);
+
+	if (w->id == snd_soc_dapm_spk) {
+		int val = 0;
+		switch (event) {
+		case SND_SOC_DAPM_POST_PMU:
+			val = 1;
+			break;
+		case SND_SOC_DAPM_PRE_PMD:
+			val = 0;
+			break;
+		default:
+			WARN(1, "Unexpected event");
+			return -EINVAL;
+		}
+
+		gpiod_set_value_cansleep(priv->amp_enable, val);
+	}
+	
+	return 0;
+}
+
 /* Add all possible widgets into here without being redundant */
 static const struct snd_soc_dapm_widget fsl_asoc_card_dapm_widgets[] = {
 	SND_SOC_DAPM_LINE("Line Out Jack", NULL),
 	SND_SOC_DAPM_LINE("Line In Jack", NULL),
 	SND_SOC_DAPM_HP("Headphone Jack", NULL),
-	SND_SOC_DAPM_SPK("Ext Spk", NULL),
+	SND_SOC_DAPM_SPK("Ext Spk", corgi_amp_event),
 	SND_SOC_DAPM_MIC("Mic Jack", NULL),
 	SND_SOC_DAPM_MIC("AMIC", NULL),
 	SND_SOC_DAPM_MIC("DMIC", NULL),
@@ -1006,6 +1034,9 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
 		ret = fsl_asoc_card_spdif_init(codec_np, cpu_np, codec_dai_name, priv);
 		if (ret)
 			goto asrc_fail;
+	} else if (of_device_is_compatible(np, "fsl,imx-audio-ak4619")) {
+		codec_dai_name[0] = "ak4619-hifi";
+		priv->dai_fmt |= SND_SOC_DAIFMT_CBC_CFC;
 	} else {
 		dev_err(&pdev->dev, "unknown Device Tree compatible\n");
 		ret = -EINVAL;
@@ -1218,6 +1249,19 @@ static int fsl_asoc_card_probe(struct platform_device *pdev)
 		}
 	}
 
+	priv->amp_enable = devm_gpiod_get_optional(&pdev->dev, "spk-con",
+						     GPIOD_OUT_LOW);
+	if (IS_ERR(priv->amp_enable)) {
+		ret = PTR_ERR(priv->amp_enable);
+		/* GPIO expander (e.g. PCA9539) may not be ready yet, defer probe */
+		if (ret == -ENXIO)
+			ret = -EPROBE_DEFER;
+		if (ret != -EPROBE_DEFER)
+			dev_err(&pdev->dev, "Failed to get 'spk-con' gpio: %d\n", ret);
+		priv->amp_enable = NULL;
+		goto asrc_fail;
+	}
+
 	/* Finish card registering */
 	platform_set_drvdata(pdev, priv);
 	snd_soc_card_set_drvdata(&priv->card, priv);
@@ -1283,6 +1327,7 @@ static const struct of_device_id fsl_asoc_card_dt_ids[] = {
 	{ .compatible = "fsl,imx-audio-nau8822", },
 	{ .compatible = "fsl,imx-audio-wm8904", },
 	{ .compatible = "fsl,imx-audio-spdif", },
+	{ .compatible = "fsl,imx-audio-ak4619", },
 	{}
 };
 MODULE_DEVICE_TABLE(of, fsl_asoc_card_dt_ids);
