@@ -509,24 +509,22 @@ static const struct reg_default ak4619_reg_defaults[] = {
 static int ak4619_set_bias_level(struct snd_soc_component *component,
 				 enum snd_soc_bias_level level)
 {
-	/*
-	 * Only manage the RSTN bit here. The individual ADC/DAC power
-	 * bits (PMAD1, PMAD2, PMDA1, PMDA2) are controlled by DAPM
-	 * widgets registered on PWR_MGMT, so we must not overwrite them.
-	 */
+	u8 pwr_ctrl = 0;
+
 	switch (level) {
 	case SND_SOC_BIAS_ON:
-		snd_soc_component_update_bits(component, PWR_MGMT, RSTN, RSTN);
-		break;
+		pwr_ctrl |= RSTN;
+		fallthrough;
 	case SND_SOC_BIAS_PREPARE:
-		break;
+		pwr_ctrl |= PMAD1 | PMAD2 | PMDA1 | PMDA2;
+		fallthrough;
 	case SND_SOC_BIAS_STANDBY:
-		snd_soc_component_update_bits(component, PWR_MGMT, RSTN, 0);
-		break;
 	case SND_SOC_BIAS_OFF:
-		snd_soc_component_write(component, PWR_MGMT, 0);
+	default:
 		break;
 	}
+
+	snd_soc_component_write(component, PWR_MGMT, pwr_ctrl);
 
 	return 0;
 }
@@ -698,9 +696,8 @@ static int ak4619_dai_mute(struct snd_soc_dai *dai, int mute, int direction)
 {
 	struct snd_soc_component *component = dai->component;
 
-	snd_soc_component_update_bits(component, DAC_MF,
-				      DA1MUTE_EN | DA2MUTE_EN,
-				      mute ? (DA1MUTE_EN | DA2MUTE_EN) : 0);
+	snd_soc_component_update_bits(component, DAC_MF, DA1MUTE_EN, mute ? DA1MUTE_EN : 0);
+	snd_soc_component_update_bits(component, DAC_MF, DA2MUTE_EN, mute ? DA2MUTE_EN : 0);
 
 	return 0;
 }

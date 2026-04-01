@@ -231,25 +231,58 @@
 		enable-active-high;
 	};
 
-	sound-mqs {
-		compatible = "fsl,imx6sx-sdb-mqs",
-			     "fsl,imx-audio-mqs";
-		model = "mqs-audio";
-		audio-cpu = <&sai1>;
-		audio-codec = <&mqs1>;
-	};
+	/* fsl-asoc-card based sound (disabled, kept for reference)
+	// sound {
+	// 	compatible = "fsl,imx-audio-ak4619";
+	// 	model = "ak4619-audio";
+	// 	pinctrl-names = "default";
+	// 	pinctrl-0 = <&pinctrl_amp_en>;
+	// 	audio-cpu = <&sai3>;
+	// 	audio-codec = <&ak4619_codec>;
+	// 	spk-con-gpio = <&gpio2 18 GPIO_ACTIVE_HIGH>;
+	// 	audio-routing =
+	// 		"Ext Spk", "AOUT1L",
+	// 		"Ext Spk", "AOUT1R",
+	// 		"AIN1L", "AMIC",
+	// 		"AIN1R", "AMIC";
+	// };
+	*/
 
-	sound {
-		compatible = "fsl,imx-audio-ak4619";
-		model = "ak4619-audio";
+	spk_amp: audio-amplifier {
+		compatible = "simple-audio-amplifier";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_amp_en>;
-		audio-cpu = <&sai3>;
-		audio-codec = <&ak4619_codec>;
-		spk-con-gpio = <&gpio2 18 GPIO_ACTIVE_HIGH>;
-		audio-routing =
-			"Ext Spk", "AOUT1L",
-			"Ext Spk", "AOUT1R";
+		enable-gpios = <&gpio2 18 GPIO_ACTIVE_HIGH>;
+		sound-name-prefix = "Speaker Amp";
+	};
+
+	sound-ak4619 {
+		compatible = "simple-audio-card";
+		simple-audio-card,name = "ak4619-audio";
+		simple-audio-card,format = "i2s";
+		simple-audio-card,frame-master = <&dai_cpu>;
+		simple-audio-card,bitclock-master = <&dai_cpu>;
+		simple-audio-card,aux-devs = <&spk_amp>;
+
+		simple-audio-card,widgets =
+			"Speaker", "Ext Spk",
+			"Microphone", "AMIC";
+
+		simple-audio-card,routing =
+			"Speaker Amp INL", "AOUT1L",
+			"Speaker Amp INR", "AOUT1R",
+			"Ext Spk", "Speaker Amp OUTL",
+			"Ext Spk", "Speaker Amp OUTR",
+			"AIN1L", "AMIC",
+			"AIN1R", "AMIC";
+
+		dai_cpu: simple-audio-card,cpu {
+			sound-dai = <&sai3>;
+		};
+
+		dai_codec: simple-audio-card,codec {
+			sound-dai = <&ak4619_codec>;
+		};
 	};
 
 	sw-keys {
@@ -677,7 +710,7 @@
 	pinctrl-0 = <&pinctrl_mqs1>;
 	clocks = <&clk IMX93_CLK_MQS1_GATE>;
 	clock-names = "mclk";
-	status = "okay";
+	status = "disabled";
 };
 
 &sai1 {
@@ -690,7 +723,7 @@
 	assigned-clock-parents = <&clk IMX93_CLK_AUDIO_PLL>;
 	assigned-clock-rates = <24576000>;
 	fsl,sai-mclk-direction-output;
-	status = "okay";
+	status = "disabled";
 };
 
 &sai3 {
