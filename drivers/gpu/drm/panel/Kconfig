@@ -988,6 +988,22 @@ config DRM_PANEL_VISIONOX_RM69299
 	  Say Y here if you want to enable support for Visionox
 	  RM69299  DSI Video Mode panel.
 
+config DRM_PANEL_VISIONOX_ICNA3512
+	tristate "Visionox ICNA3512"
+	depends on OF
+	depends on DRM_MIPI_DSI
+	help
+	  Say Y here if you want to enable support for Visionox
+	  ICNA3512 DSI Video Mode panel.
+
+config DRM_PANEL_CHIPONE_ICNA3512
+	tristate "Chipone ICNA3512"
+	depends on OF
+	depends on DRM_MIPI_DSI
+	help
+	  Say Y here if you want to enable support for Chipone
+	  ICNA3512 DSI Video Mode panel.
+
 config DRM_PANEL_VISIONOX_VTDR6130
 	tristate "Visionox VTDR6130"
 	depends on OF

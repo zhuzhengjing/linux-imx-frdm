@@ -390,20 +390,16 @@
 	assigned-clock-rates = <1039500000>, <148444444>, <400000000>, <133333333>;
 };
 
-&dphy {
-	status = "okay";
-};
-
 &lpm {
 	soc-supply = <&buck1>;
 	status = "okay";
 };
 
 &ldb {
-	status = "okay";
+	status = "disabled";
 
 	lvds-channel@0 {
-		status = "okay";
+		status = "disabled";
 
 		port@1 {
 			reg = <1>;
@@ -416,7 +412,7 @@
 };
 
 &ldb_phy {
-	status = "okay";
+	status = "disabled";
 };
 
 &lpi2c1 {
@@ -432,7 +428,7 @@
 		compatible = "ite,it6263";
 		reg = <0x4c>;
 		reset-gpio = <&pcal6524 21 GPIO_ACTIVE_LOW>;
-		status = "okay";
+		status = "disabled";
 
 		port {
 			it6263_0_in: endpoint {
@@ -551,15 +547,25 @@
 };
 
 &dsi {
-	status = "disabled";
+	status = "okay";
 	#address-cells = <1>;
 	#size-cells = <0>;
 
-	dxq7d0023: dxq7d0023@0 {
-		compatible = "dxq,dxq7d0023";
-		status = "disabled";
+	panel@0 {
+		compatible = "visionox,icna3512";
 		reg = <0>;
 		reset-gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
+		v3p3-supply = <&reg_vexp_3v3>;
+		v1p8-supply = <&ldo5>;
+		dsi-lanes = <4>;
+		video-mode = <3>;	/* 0: burst mode
+							 * 1: non-burst mode with sync event
+							 * 2: non-burst mode with sync pulse
+							 */
+		width-mm = <68>;
+		height-mm = <121>;
+		status = "okay";
+
 		port {
 			panel_in: endpoint {
 				remote-endpoint = <&dsi_out>;
