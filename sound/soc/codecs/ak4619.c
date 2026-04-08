@@ -698,9 +698,10 @@ static int ak4619_dai_mute(struct snd_soc_dai *dai, int mute, int direction)
 {
 	struct snd_soc_component *component = dai->component;
 
-	snd_soc_component_update_bits(component, DAC_MF,
-				      DA1MUTE_EN | DA2MUTE_EN,
-				      mute ? (DA1MUTE_EN | DA2MUTE_EN) : 0);
+	if (direction == SNDRV_PCM_STREAM_PLAYBACK)
+		snd_soc_component_update_bits(component, DAC_MF,
+					      DA1MUTE_EN | DA2MUTE_EN,
+					      mute ? (DA1MUTE_EN | DA2MUTE_EN) : 0);
 
 	return 0;
 }
