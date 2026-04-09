@@ -43,26 +43,6 @@
 		};
 	};
 
-	sw-keys {
-		compatible = "gpio-keys";
-
-		K2: user_btn1 {
-			label = "User Button1";
-			linux,code = <BTN_1>;
-			gpios = <&pcal6524 5 GPIO_PULL_UP>;
-			interrupt-parent = <&pcal6524>;
-			interrupts = <5 IRQ_TYPE_EDGE_FALLING>;
-		};
-
-		K3: user_btn2 {
-			label = "User Button2";
-			linux,code = <BTN_2>;
-			gpios = <&pcal6524 6 GPIO_PULL_UP>;
-			interrupt-parent = <&pcal6524>;
-			interrupts = <6 IRQ_TYPE_EDGE_FALLING>;
-		};
-	};
-
 	reserved-memory {
 		#address-cells = <2>;
 		#size-cells = <2>;
@@ -302,6 +282,26 @@
 
 		dai_codec: simple-audio-card,codec {
 			sound-dai = <&ak4619_codec>;
+		};
+	};
+
+	sw-keys {
+		compatible = "gpio-keys";
+
+		K2: user_btn1 {
+			label = "User Button1";
+			linux,code = <BTN_1>;
+			gpios = <&pcal6524 5 GPIO_PULL_UP>;
+			interrupt-parent = <&pcal6524>;
+			interrupts = <5 IRQ_TYPE_EDGE_FALLING>;
+		};
+
+		K3: user_btn2 {
+			label = "User Button2";
+			linux,code = <BTN_2>;
+			gpios = <&pcal6524 6 GPIO_PULL_UP>;
+			interrupt-parent = <&pcal6524>;
+			interrupts = <6 IRQ_TYPE_EDGE_FALLING>;
 		};
 	};
 };
